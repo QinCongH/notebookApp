@@ -16,29 +16,33 @@
           <p>{{ value.content }}</p>
         </div>
         <div>
-          <button>删除</button>
+          <button @click="deleteItem(value.id)">删除</button>
         </div>
       </div>
     </div>
-    <prop-ups/>
+    <!-- <button @click="deleteChose">shanc</button> -->
   </div>
 </template>
 
 <script>
 import { nanoid } from "nanoid";
-import PropUps from "../components/PropUps.vue"
 export default {
   name: "Content",
   computed: {
     isdfCenter() {
       return this.isCtn == true ? "" : "dfCenter";
     },
+    todoCount() {
+      return this.todoList.length;
+    },
+    isCtn() {
+      return this.todoCount !== 0 ? true : false;
+    },
   },
   data() {
     return {
       dfCenter: "dfCenter",
-      isCtn: true,
-      todoList: JSON.parse(localStorage.getItem("todoList"))||[],//初始化数据
+      todoList: JSON.parse(localStorage.getItem("todoList")) || [], //初始化数据
       myCotent: "",
     };
   },
@@ -53,12 +57,49 @@ export default {
         };
         todoItem["content"] = this.myCotent; //创建内容
         this.todoList.push(todoItem); //添加数据
+        this.sendCount();
       });
     },
+    //删除
+    deleteItem(val) {
+      if (confirm("您确定要删除吗？？") == true) {
+        setTimeout(() => {
+          this.todoList = this.todoList.filter((v) => {
+            return v.id !== val;
+          });
+        }, 300);
+
+        this.sendCount();
+      }
+    },
+    //删除选中
+    deleteChose() {
+      setTimeout(() => {
+        this.todoList = this.todoList.filter((v) => {
+          return v.isCheck !== true;
+        });
+      }, 500);
+    },
+    sendCount() {
+      //发送count
+      this.$bus.$emit("getCount", this.todoCount);
+      // console.log(this.todoCount);
+    },
   },
+
+  // this.$bus.$emit("sendEvn",this.deleteChose())  ,
   mounted() {
     this.addItem();
+    this.sendCount();
+    // this.deleteChose()
+    this.$bus.$on("sendEvt", (res) => {
+      if (res === true) {
+        this.deleteChose();
+        return false;
+      }
+    });
   },
+
   watch: {
     todoList: {
       handler(newV) {
@@ -68,9 +109,6 @@ export default {
     deep: true,
     immediate: true,
   },
-  components:{
-      PropUps
-  }
 };
 </script>
 
@@ -115,6 +153,8 @@ export default {
       &:nth-child(3) {
         width: 20%;
         text-align: center;
+        height: 29px;
+
         button {
           width: 70%;
           height: 29px;
@@ -122,10 +162,7 @@ export default {
           color: #fff;
           border-radius: 5px;
           font-size: 12px;
-          opacity: 0;
-          &:hover {
-            opacity: 1;
-          }
+          display: block;
         }
       }
     }

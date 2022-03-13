@@ -11,10 +11,12 @@
       </div>
     </div>
     <div>
-      <p>共计：<span>120</span></p>
+      <p>
+        共计：<span>{{ count }}</span>
+      </p>
     </div>
     <div>
-      <button>删除选中</button>
+      <button @click="deleteChoseAll()">删除选中</button>
     </div>
   </div>
 </template>
@@ -22,6 +24,21 @@
 <script>
 export default {
   name: "Foot",
+  data() {
+    return {
+      count: "",
+    };
+  },
+  created() {
+    this.$bus.$on("getCount", (res) => {
+      this.count = res;
+    });
+  },
+  methods: {
+    deleteChoseAll() {
+      this.$bus.$emit("sendEvt", true);
+    },
+  },
 };
 </script>
 
@@ -36,7 +53,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0px 10px;
-  >div {
+  > div {
     &:nth-child(1) {
       display: flex;
       align-items: center;
@@ -55,10 +72,10 @@ export default {
       button {
         width: 70%;
         height: 29px;
-        background: #ff00006e;
+        background: #ff0000;
         color: #fff;
         border-radius: 5px;
-            font-size: 12px;
+        font-size: 12px;
       }
     }
   }
