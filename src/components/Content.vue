@@ -10,17 +10,28 @@
       <div class="ctn" v-for="value in todoList" :key="value.id">
         <div>
           <label for="check"></label>
-          <input type="checkbox" name="" v-model="value.isCheck" id="check" />
+          <input
+            type="checkbox"
+            name=""
+            v-model="value.isCheck"
+            @change="toCheck"
+            id="check"
+          />
         </div>
         <div>
-          <p>{{ value.content }}</p>
+          <p v-if="isEditShow">{{ value.content }}</p>
+          <input type="text" v-model="value.content" v-if="!isEditShow"/>
         </div>
         <div>
-          <button @click="deleteItem(value.id)">删除</button>
+          <button @click="deleteItem(value.id)">
+            <i class="fa fa-trash-o" aria-hidden="true"></i>
+          </button>
+          <button @click="updataItem(value.id)">
+            <i class="fa fa-pencil" aria-hidden="true"></i>
+          </button>
         </div>
       </div>
     </div>
-    <!-- <button @click="deleteChose">shanc</button> -->
   </div>
 </template>
 
@@ -38,12 +49,24 @@ export default {
     isCtn() {
       return this.todoCount !== 0 ? true : false;
     },
+    allCheck() {
+      //全部选中则全选为true
+      let isCheckall = this.todoList.every((v) => {
+        return v.isCheck == true;
+      });
+      if (isCheckall == true) {
+        return true;
+      } else {
+        return false;
+      }
+    },
   },
   data() {
     return {
       dfCenter: "dfCenter",
       todoList: JSON.parse(localStorage.getItem("todoList")) || [], //初始化数据
       myCotent: "",
+      isEditShow: true, //控制编辑框
     };
   },
   methods: {
@@ -62,6 +85,7 @@ export default {
     },
     //删除
     deleteItem(val) {
+      // console.log(val);
       if (confirm("您确定要删除吗？？") == true) {
         setTimeout(() => {
           this.todoList = this.todoList.filter((v) => {
@@ -78,17 +102,52 @@ export default {
         this.todoList = this.todoList.filter((v) => {
           return v.isCheck !== true;
         });
+        this.sendCount();
       }, 500);
     },
+    //总数
     sendCount() {
       //发送count
       this.$bus.$emit("getCount", this.todoCount);
       // console.log(this.todoCount);
     },
+    //全选
+    toAllCheck() {
+      this.$bus.$on("sendAllChose", (res) => {
+        //接收全选选中状态
+        // console.log(res);
+        if (res) {
+          this.todoList.forEach((v) => {
+            v.isCheck = true;
+          });
+        } else {
+          this.todoList.forEach((v) => {
+            v.isCheck = false;
+          });
+        }
+      });
+    },
+    toCheck() {
+      //当点击勾选发送全选
+      this.$bus.$emit("sendAllCheck", this.allCheck);
+    },
+    //反选
+    oppoChose() {
+      this.$bus.$on("sendOppoChose", (res) => {
+        if (res == true) {
+          this.todoList.forEach((v) => {
+            v.isCheck = !v.isCheck;
+          });
+        } else {
+          this.todoList.forEach((v) => {
+            v.isCheck = false;
+          });
+        }
+      });
+    }
   },
-
-  // this.$bus.$emit("sendEvn",this.deleteChose())  ,
   mounted() {
+    this.$bus.$emit("sendAllCheck", this.allCheck); //发送全选选中状态
     this.addItem();
     this.sendCount();
     // this.deleteChose()
@@ -98,8 +157,9 @@ export default {
         return false;
       }
     });
+    this.toAllCheck(); //全选
+    this.oppoChose();
   },
-
   watch: {
     todoList: {
       handler(newV) {
@@ -149,20 +209,34 @@ export default {
           text-overflow: ellipsis;
           overflow: hidden;
         }
+        input {
+          border: 1px solid #222;
+          border-radius: 5px;
+          width: 97%;
+          // display: none;
+          font-size: 19px;
+          padding-left: 5px;
+        }
       }
       &:nth-child(3) {
-        width: 20%;
+        width: 30%;
         text-align: center;
         height: 29px;
-
+        display: flex;
+        justify-content: space-around;
         button {
-          width: 70%;
+          width: 40%;
           height: 29px;
-          background: red;
           color: #fff;
-          border-radius: 5px;
-          font-size: 12px;
+          border-radius: 70px;
+          font-size: 17px;
           display: block;
+        }
+        button:nth-child(1) {
+          background: red;
+        }
+        button:nth-child(2) {
+          background: rgb(15, 117, 235);
         }
       }
     }

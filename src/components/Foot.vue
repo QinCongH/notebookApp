@@ -2,11 +2,17 @@
   <div class="todoFoot">
     <div>
       <div>
-        <input type="checkbox" name="" id="" />
+        <input type="checkbox" v-model="check" @change="checkAll" name="" id="" />
         <span> 全选 </span>
       </div>
       <div>
-        <input type="checkbox" name="" id="" />
+        <input
+          type="checkbox"
+          v-model="oppoCheck"
+          @click="oppoCheckAll"
+          name=""
+          id=""
+        />
         <span> 反选 </span>
       </div>
     </div>
@@ -27,17 +33,34 @@ export default {
   data() {
     return {
       count: "",
+      check: false, //全选勾选状态
+      oppoCheck: false,
     };
   },
   created() {
     this.$bus.$on("getCount", (res) => {
       this.count = res;
     });
+// 接收全选
+    this.$bus.$on("sendAllCheck", (res) => {
+      //接收全选
+      this.check = res;
+    });
   },
   methods: {
     deleteChoseAll() {
       this.$bus.$emit("sendEvt", true);
+      this.check = false;
+      this.oppoCheck = false;
+    },  
+    checkAll(){     //全选
+      this.$bus.$emit("sendAllChose", this.check);
+    },              
+    oppoCheckAll() {//反选
+      this.$bus.$emit("sendOppoChose", !this.oppoCheck);
     },
+  },
+  mounted() {
   },
 };
 </script>

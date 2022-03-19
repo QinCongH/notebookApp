@@ -4,7 +4,12 @@
       <p>禾耳记事本</p>
     </div>
     <div class="todoInput">
-      <input type="text" v-model.trim="keyWord" placeholder="请输入代办事项" @keydown.enter="sendKeyWord" />
+      <input
+        type="text"
+        v-model.trim="keyWord"
+        placeholder="请输入代办事项"
+        @keydown.enter="sendKeyWord()"
+      />
       <button @click="sendKeyWord">
         <i class="fa fa-hand-pointer-o" aria-hidden="true"></i>
       </button>
@@ -24,16 +29,17 @@ export default {
       keyWord: "",
     };
   },
-  methods:{
-    sendKeyWord(){
+  methods: {
+    sendKeyWord() {
       // console.log(this.keyWord);
       // 发送keyWord
-      if(this.keyWord.length>0){
-        this.$bus.$emit("getKeyWord",this.keyWord);
-      }
-      
-    }
-  }
+      if (this.keyWord.length > 0) {
+        this.$bus.$emit("getKeyWord", this.keyWord);
+           }
+           this.keyWord=''
+    
+    },
+  },
 };
 </script>
 
