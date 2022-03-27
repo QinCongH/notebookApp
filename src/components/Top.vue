@@ -1,7 +1,7 @@
 <template>
   <div class="todoTop">
     <div class="todoTle">
-      <p>禾耳记事本</p>
+      <p>禾耳代办</p>
     </div>
     <div class="todoInput">
       <input
@@ -35,9 +35,8 @@ export default {
       // 发送keyWord
       if (this.keyWord.length > 0) {
         this.$bus.$emit("getKeyWord", this.keyWord);
-           }
-           this.keyWord=''
-    
+      }
+      this.keyWord = "";
     },
   },
 };
@@ -77,6 +76,8 @@ export default {
   }
   .todoInput {
     width: 60%;
+    display: flex;
+    align-items: center;
     input {
       width: 78%;
       height: 30px;
@@ -86,8 +87,9 @@ export default {
       height: 30px;
       i {
         color: rgb(175, 175, 175);
-        line-height: 30px;
+        line-height: 20px;
         margin-right: 7px;
+        font-size: 14px;
         &:hover {
           color: #a25959;
         }

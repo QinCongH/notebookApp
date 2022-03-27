@@ -1,6 +1,6 @@
 <template>
   <div class="todoCtn" :class="isdfCenter">
-    <div v-if="!isCtn" class="nullCtn">
+    <div v-if="!isCtn" @click="openBox" class="nullCtn">
       <p>
         <i class="fa fa-file-text-o" aria-hidden="true"></i>
         添加任务
@@ -9,18 +9,17 @@
     <div v-if="isCtn">
       <div class="ctn" v-for="value in todoList" :key="value.id">
         <div>
-          <label for="check"></label>
-          <input
-            type="checkbox"
-            name=""
-            v-model="value.isCheck"
-            @change="toCheck"
-            id="check"
-          />
+          <el-checkbox v-model="value.isCheck" @change="toCheck"></el-checkbox>
         </div>
-        <div>
-          <p v-if="isEditShow">{{ value.content }}</p>
-          <input type="text" v-model="value.content" v-if="!isEditShow"/>
+        <div @click="updataItem(value.id)">
+          <p v-if="value.isEditShow" :class="value.isCheck==true?del:''">{{ value.content }}</p>
+          <input
+            type="text"
+            :ref="value.id"
+            @blur="editBlur"
+            v-model="value.content"
+            v-if="!value.isEditShow"
+          />
         </div>
         <div>
           <button @click="deleteItem(value.id)">
@@ -49,16 +48,18 @@ export default {
     isCtn() {
       return this.todoCount !== 0 ? true : false;
     },
-    allCheck() {
-      //全部选中则全选为true
-      let isCheckall = this.todoList.every((v) => {
-        return v.isCheck == true;
-      });
-      if (isCheckall == true) {
-        return true;
-      } else {
-        return false;
-      }
+    allCheck: {
+      get() {
+        //全部选中则全选为true
+        let isCheckall = this.todoList.every((v) => {
+          return v.isCheck == true;
+        });
+        if (isCheckall == true && this.todoCount > 0) {
+          return true;
+        } else {
+          return false;
+        }
+      },
     },
   },
   data() {
@@ -66,7 +67,7 @@ export default {
       dfCenter: "dfCenter",
       todoList: JSON.parse(localStorage.getItem("todoList")) || [], //初始化数据
       myCotent: "",
-      isEditShow: true, //控制编辑框
+      del:"del"
     };
   },
   methods: {
@@ -77,33 +78,80 @@ export default {
         let todoItem = {
           id: nanoid(),
           isCheck: false,
+          isEditShow: true, //控制编辑框
         };
         todoItem["content"] = this.myCotent; //创建内容
         this.todoList.push(todoItem); //添加数据
         this.sendCount();
       });
     },
+    openBox() {
+      console.log(this);
+    },
     //删除
     deleteItem(val) {
       // console.log(val);
-      if (confirm("您确定要删除吗？？") == true) {
-        setTimeout(() => {
-          this.todoList = this.todoList.filter((v) => {
-            return v.id !== val;
+      this.$confirm("此操作将永久删除该事项, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          setTimeout(() => {
+            this.todoList = this.todoList.filter((v) => {
+              return v.id !== val;
+            });
+            this.$message({
+              type: "success",
+              message: "删除成功!",
+            });
+            this.$bus.$emit("sendCheckFalse", false); //将全选状态赋值为false
+          }, 300);
+          this.sendCount();
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
           });
-        }, 300);
-
-        this.sendCount();
-      }
+        });
     },
     //删除选中
     deleteChose() {
-      setTimeout(() => {
-        this.todoList = this.todoList.filter((v) => {
-          return v.isCheck !== true;
+      let orCheck = this.todoList.every((v) => {
+        return v.isCheck == false;
+      });
+      if (orCheck === false) {
+        this.$confirm("此操作将永久删除该事项, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        })
+          .then(() => {
+            setTimeout(() => {
+              this.todoList = this.todoList.filter((v) => {
+                return v.isCheck !== true;
+              });
+              this.sendCount();
+              this.$message({
+                type: "success",
+                message: "删除成功!",
+              });
+            }, 100);
+            this.$bus.$emit("sendCheckFalse", false); //将全选状态赋值为false
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消删除",
+            });
+          });
+      } else {
+        this.$message({
+          type: "error",
+          message: "请您选择想要删除的任务项！",
         });
-        this.sendCount();
-      }, 500);
+      }
     },
     //总数
     sendCount() {
@@ -144,8 +192,32 @@ export default {
           });
         }
       });
-    }
+    },
+    // 编辑
+    updataItem(val) {
+      /*
+        0.点击编辑显示输入框
+        1.通过id遍历数组找到相应数据进行更新
+      */
+      this.todoList.forEach((v) => {
+        if (val == v.id) {
+          v.isEditShow = false;
+        } else {
+          v.isEditShow = true;
+        }
+      });
+      this.$nextTick(() => {
+        //注意[0]
+        this.$refs[val][0].focus();
+      });
+    },
+    editBlur() {
+      this.todoList.forEach((v) => {
+        v.isEditShow = true;
+      });
+    },
   },
+
   mounted() {
     this.$bus.$emit("sendAllCheck", this.allCheck); //发送全选选中状态
     this.addItem();
@@ -210,7 +282,8 @@ export default {
           overflow: hidden;
         }
         input {
-          border: 1px solid #222;
+          border: 1px solid transparent;
+          border-bottom-color: rgb(56, 56, 56);
           border-radius: 5px;
           width: 97%;
           // display: none;
@@ -250,5 +323,8 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+.del{
+  text-decoration: line-through;
 }
 </style>

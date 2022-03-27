@@ -2,18 +2,12 @@
   <div class="todoFoot">
     <div>
       <div>
-        <input type="checkbox" v-model="check" @change="checkAll" name="" id="" />
-        <span> 全选 </span>
+        <el-checkbox v-model="check" @change="checkAll">全选</el-checkbox>
       </div>
       <div>
-        <input
-          type="checkbox"
-          v-model="oppoCheck"
-          @click="oppoCheckAll"
-          name=""
-          id=""
-        />
-        <span> 反选 </span>
+        <el-checkbox v-model="oppoCheck" @change="oppoCheckAll"
+          >反选</el-checkbox
+        >
       </div>
     </div>
     <div>
@@ -35,33 +29,39 @@ export default {
       count: "",
       check: false, //全选勾选状态
       oppoCheck: false,
+      // key: 0, //标记刷新
     };
   },
   created() {
     this.$bus.$on("getCount", (res) => {
       this.count = res;
     });
-// 接收全选
+    // 接收全选
     this.$bus.$on("sendAllCheck", (res) => {
       //接收全选
       this.check = res;
     });
+    //接收删除选中后的全选状态
+    this.$bus.$on("sendCheckFalse",res=>{
+      this.check=res
+    })
   },
   methods: {
     deleteChoseAll() {
       this.$bus.$emit("sendEvt", true);
-      this.check = false;
       this.oppoCheck = false;
-    },  
-    checkAll(){     //全选
+      // this.key = new Date();//刷新
+    },
+    checkAll() {
+      //全选
       this.$bus.$emit("sendAllChose", this.check);
-    },              
-    oppoCheckAll() {//反选
+    },
+    oppoCheckAll() {
+      //反选
       this.$bus.$emit("sendOppoChose", !this.oppoCheck);
     },
   },
-  mounted() {
-  },
+  mounted() {},
 };
 </script>
 
@@ -82,9 +82,7 @@ export default {
       align-items: center;
       width: 38%;
       div {
-        span {
-          margin-right: 5px;
-        }
+        margin-right: 14px;
       }
     }
     &:nth-child(2) {

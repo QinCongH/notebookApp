@@ -1,0 +1,7 @@
+
+.el-checkbox{
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+.el-message-box{
+    width: 300px;
+}
